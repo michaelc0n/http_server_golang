@@ -1,15 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/michaelc0n/http_server_golang/internal/database"
 )
 
 func testHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
-	w.Write([]byte("{}"))
+	w.Write([]byte(`{"mr":"si"}`))
 }
 
 func main() {
@@ -26,5 +29,12 @@ func main() {
 	}
 
 	log.Fatal(http.ListenAndServe(srv.Addr, nil))
+
+	c := database.NewClient("db.json")
+	err := c.EnsureDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("database ensured!")
 
 }
