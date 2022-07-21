@@ -1,6 +1,11 @@
 package database
 
-import "time"
+import (
+	"encoding/json"
+	"errors"
+	"os"
+	"time"
+)
 
 type databaseSchema struct {
 	Users map[string]User `json:"users"`
@@ -24,20 +29,36 @@ type Post struct {
 	Text      string    `json:"text"`
 }
 
-type Client struct{}
+type Client struct {
+	Path string
+}
 
 func NewClient(path string) Client {
-	nc := Client{}
-	nc.createDB()
+	return Client{
+		Path: path,
+	}
+}
 
-	return nc
+// EnsureDB creates the database file if it doesn't exist
+func (c Client) EnsureDB() error {
+	_, err := os.ReadFile(c.Path)
+	if errors.Is(err, os.ErrNotExist) {
+		return c.createDB()
+	}
+	return err
 }
 
 func (c Client) createDB() error {
-
-	return nil
-}
-
-func (c Client) EnsureDB() error {
+	data, err := json.Marshal(databaseSchema{
+		Users: make(map[string]User),
+		Posts: make(map[string]Post),
+	})
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile(c.Path, data, 0600)
+	if err != nil {
+		return err
+	}
 	return nil
 }

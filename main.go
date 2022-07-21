@@ -16,11 +16,19 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	//setup db
+	c := database.NewClient("db.json")
+	err := c.EnsureDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("database ensured!")
+
+	serveMux := http.NewServeMux()
+
 	http.HandleFunc("/", testHandler)
 
 	const addr = "localhost:8080"
-
-	serveMux := http.NewServeMux()
 	srv := http.Server{
 		Handler:      serveMux,
 		Addr:         addr,
@@ -29,12 +37,5 @@ func main() {
 	}
 
 	log.Fatal(http.ListenAndServe(srv.Addr, nil))
-
-	c := database.NewClient("db.json")
-	err := c.EnsureDB()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("database ensured!")
 
 }
