@@ -18,14 +18,22 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	//setup db
 	c := database.NewClient("db.json")
+	fmt.Println(c.Path)
 	err := c.EnsureDB()
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("database ensured!")
 
+	user, err := c.CreateUser("test@example.com", "password", "john doe", 18)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("user created", user)
+
 	serveMux := http.NewServeMux()
 
+	//start server
 	http.HandleFunc("/", testHandler)
 
 	const addr = "localhost:8080"

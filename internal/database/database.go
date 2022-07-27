@@ -48,6 +48,29 @@ func (c Client) EnsureDB() error {
 	return err
 }
 
+func (c Client) updateDB(db databaseSchema) error {
+	data, err := json.Marshal(db)
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile(c.Path, data, 0600)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c Client) readDB() (databaseSchema, error) {
+	data, err := os.ReadFile(c.Path)
+	if err != nil {
+		return databaseSchema{}, err
+	}
+	db := databaseSchema{}
+	err = json.Unmarshal(data, &db)
+	//fmt.Println(db, err)
+	return db, err
+}
+
 func (c Client) createDB() error {
 	data, err := json.Marshal(databaseSchema{
 		Users: make(map[string]User),
@@ -61,4 +84,28 @@ func (c Client) createDB() error {
 		return err
 	}
 	return nil
+}
+
+func (c Client) CreateUser(email, password, name string, age int) (User, error) {
+	db, err := c.readDB()
+	if err != nil {
+		return User{}, err
+	}
+	if _, ok := db.Users[email]; ok {
+		return User{}, errors.New("user already exists")
+	}
+	user := User{
+		CreatedAt: time.Now().UTC(),
+		Email:     email,
+		Password:  password,
+		Name:      name,
+		Age:       age,
+	}
+	db.Users[email] = user
+
+	err = c.updateDB(db)
+	if err != nil {
+		return User{}, err
+	}
+	return user, err
 }
