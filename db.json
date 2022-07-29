@@ -1,1 +1,1 @@
-{"users":{"test2@example.com":{"createdAt":"2022-07-27T03:41:31.406611Z","email":"test2@example.com","password":"password","name":"john doe","age":18},"test@example.com":{"createdAt":"2022-07-27T03:40:14.185945Z","email":"test@example.com","password":"password","name":"john doe","age":18}},"posts":{}}
+{"users":{"test1@example.com":{"createdAt":"2022-07-29T04:42:37.513651Z","email":"test1@example.com","password":"password","name":"john doe","age":18}},"posts":{}}

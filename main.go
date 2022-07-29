@@ -25,11 +25,23 @@ func main() {
 	}
 	fmt.Println("database ensured!")
 
-	user, err := c.CreateUser("test@example.com", "password", "john doe", 18)
+	user, err := c.CreateUser("test1@example.com", "password", "john doe", 18)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("user created", user)
+
+	updatedUser, err := c.UpdateUser("test1@example.com", "password", "john doe", 18)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("user updated", updatedUser)
+
+	gotUser, err := c.GetUser("test1@example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("user got", gotUser)
 
 	serveMux := http.NewServeMux()
 

@@ -3,6 +3,7 @@ package database
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 )
@@ -92,6 +93,7 @@ func (c Client) CreateUser(email, password, name string, age int) (User, error) 
 		return User{}, err
 	}
 	if _, ok := db.Users[email]; ok {
+		fmt.Printf("creating user: %v", ok)
 		return User{}, errors.New("user already exists")
 	}
 	user := User{
@@ -107,5 +109,39 @@ func (c Client) CreateUser(email, password, name string, age int) (User, error) 
 	if err != nil {
 		return User{}, err
 	}
+	fmt.Printf("creating user: %v %v", user, err)
+	return user, err
+}
+
+func (c Client) UpdateUser(email, password, name string, age int) (User, error) {
+	db, err := c.readDB()
+	if err != nil {
+		return User{}, err
+	}
+	user, ok := db.Users[email]
+
+	if !ok {
+		return User{}, errors.New("user doesn't exist")
+	}
+
+	user.Password = password
+	user.Name = name
+	user.Age = age
+	db.Users[email] = user
+	err = c.updateDB(db)
+	if err != nil {
+		return User{}, err
+	}
+	fmt.Printf("updating user: %v %v", user, err)
+	return user, err
+}
+
+func (c Client) GetUser(email string) (User, error) {
+	db, err := c.readDB()
+	user, ok := db.Users[email]
+	if !ok {
+		return User{}, errors.New("user doesn't exist")
+	}
+	fmt.Printf("getting user: %v %v", user, err)
 	return user, err
 }
