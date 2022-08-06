@@ -145,3 +145,17 @@ func (c Client) GetUser(email string) (User, error) {
 	fmt.Printf("getting user: %v %v", user, err)
 	return user, err
 }
+
+func (c Client) DeleteUser(email string) error {
+	db, err := c.readDB()
+	if err != nil {
+		return err
+	}
+	delete(db.Users, email)
+	err = c.updateDB(db)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
