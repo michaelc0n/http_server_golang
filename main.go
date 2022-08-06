@@ -55,6 +55,24 @@ func main() {
 	}
 	fmt.Println("user confirmed deleted")
 
+	user, err = c.CreateUser("test@example.com", "password", "john doe", 18)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("user recreated", user)
+
+	post, err := c.CreatePost("test@example.com", "my cat is way too fat")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("post created", post)
+
+	secondPost, err := c.CreatePost("test@example.com", "my cat is getting skinny now")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("another post created", secondPost)
+
 	serveMux := http.NewServeMux()
 
 	//start server
