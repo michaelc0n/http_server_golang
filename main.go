@@ -73,6 +73,42 @@ func main() {
 	}
 	fmt.Println("another post created", secondPost)
 
+	posts, err := c.GetPosts("test@example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("got posts", posts)
+
+	err = c.DeletePost(post.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("deleted first post", posts)
+
+	posts, err = c.GetPosts("test@example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("got posts", posts)
+
+	err = c.DeletePost(secondPost.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("deleted second post", posts)
+
+	posts, err = c.GetPosts("test@example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("got posts", posts)
+
+	err = c.DeleteUser("test@example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("user redeleted")
+
 	serveMux := http.NewServeMux()
 
 	//start server
