@@ -1,1 +1,1 @@
-{"users":{},"posts":{}}
+{"users":{"test1@example.com":{"createdAt":"2022-08-07T21:44:14.974992Z","email":"test1@example.com","password":"12345","name":"john doe","age":18},"test@example.com":{"createdAt":"2022-08-07T21:42:30.66456Z","email":"test@example.com","password":"12345","name":"john doe","age":18}},"posts":{}}

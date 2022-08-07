@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,110 +11,31 @@ import (
 	"github.com/michaelc0n/http_server_golang/internal/database"
 )
 
-func testHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	w.Write([]byte(`{"mr":"si"}`))
+type apiConfig struct {
+	dbClient database.Client
 }
 
 func main() {
 	//setup db
-	c := database.NewClient("db.json")
-	fmt.Println(c.Path)
-	err := c.EnsureDB()
+	const dbPath = "db.json"
+
+	dbClient := database.NewClient(dbPath)
+	err := dbClient.EnsureDB()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("database ensured!")
 
-	user, err := c.CreateUser("test@example.com", "password", "john doe", 18)
-	if err != nil {
-		log.Fatal(err)
+	apiCfg := apiConfig{
+		dbClient: dbClient,
 	}
-	fmt.Println("user created", user)
-
-	updatedUser, err := c.UpdateUser("test@example.com", "password", "john doe", 18)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("user updated", updatedUser)
-
-	gotUser, err := c.GetUser("test@example.com")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("user got", gotUser)
-
-	err = c.DeleteUser("test@example.com")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("user deleted")
-
-	_, err = c.GetUser("test@example.com")
-	if err == nil {
-		log.Fatal("shouldn't be able to get user that was deleted")
-	}
-	fmt.Println("user confirmed deleted")
-
-	user, err = c.CreateUser("test@example.com", "password", "john doe", 18)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("user recreated", user)
-
-	post, err := c.CreatePost("test@example.com", "my cat is way too fat")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("post created", post)
-
-	secondPost, err := c.CreatePost("test@example.com", "my cat is getting skinny now")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("another post created", secondPost)
-
-	posts, err := c.GetPosts("test@example.com")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("got posts", posts)
-
-	err = c.DeletePost(post.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("deleted first post", posts)
-
-	posts, err = c.GetPosts("test@example.com")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("got posts", posts)
-
-	err = c.DeletePost(secondPost.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("deleted second post", posts)
-
-	posts, err = c.GetPosts("test@example.com")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("got posts", posts)
-
-	err = c.DeleteUser("test@example.com")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("user redeleted")
 
 	serveMux := http.NewServeMux()
 
-	//start server
-	http.HandleFunc("/", testHandler)
+	serveMux.HandleFunc("/users", apiCfg.endpointUsersHandler)
+	serveMux.HandleFunc("/users/", apiCfg.endpointUsersHandler)
+
+	serveMux.HandleFunc("/", testHandler)
+	serveMux.HandleFunc("/err", testErrHandler)
 
 	const addr = "localhost:8080"
 	srv := http.Server{
@@ -121,7 +44,68 @@ func main() {
 		WriteTimeout: 30 * time.Second,
 		ReadTimeout:  30 * time.Second,
 	}
+	fmt.Println("server started on ", addr)
+	log.Fatal(srv.ListenAndServe())
+}
 
-	log.Fatal(http.ListenAndServe(srv.Addr, nil))
+type errorBody struct {
+	Error string `json:"Error"`
+}
 
+func testHandler(w http.ResponseWriter, r *http.Request) {
+	respondWithJSON(w, 200, database.User{
+		Email: "test@example.com",
+		Name:  "mr",
+	})
+}
+
+func testErrHandler(w http.ResponseWriter, r *http.Request) {
+	respondWithError(w, 500, errors.New("serve error"))
+}
+
+func respondWithError(w http.ResponseWriter, code int, err error) {
+	if err == nil {
+		log.Println("don't call responsdWithError with a nil err!")
+		return
+	}
+	log.Println(err)
+	respondWithJSON(w, code, errorBody{
+		Error: err.Error(),
+	})
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	//w.Header().Set(key, value)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	if payload != nil {
+		response, err := json.Marshal(payload)
+		if err != nil {
+			log.Println("error marshalling", err)
+			w.WriteHeader(500)
+			response, _ := json.Marshal(errorBody{
+				Error: "error marshalling",
+			})
+			w.Write(response)
+			return
+		}
+		w.WriteHeader(code)
+		w.Write(response)
+	}
+}
+
+func (ac apiConfig) endpointUsersHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		fmt.Println("boo")
+	case http.MethodPost:
+		ac.handlerCreateUser(w, r)
+
+	case http.MethodPut:
+
+	case http.MethodDelete:
+
+	default:
+		respondWithError(w, 404, errors.New("method not supported"))
+	}
 }
