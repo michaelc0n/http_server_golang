@@ -20,6 +20,7 @@ type User struct {
 	Password  string    `json:"password"`
 	Name      string    `json:"name"`
 	Age       int       `json:"age"`
+	Another   string    `json:"another"`
 }
 
 // Post -
@@ -87,7 +88,7 @@ func (c Client) createDB() error {
 	return nil
 }
 
-func (c Client) CreateUser(email, password, name string, age int) (User, error) {
+func (c Client) CreateUser(email, password, name string, age int, another string) (User, error) {
 	db, err := c.readDB()
 	if err != nil {
 		return User{}, err
@@ -102,6 +103,7 @@ func (c Client) CreateUser(email, password, name string, age int) (User, error) 
 		Password:  password,
 		Name:      name,
 		Age:       age,
+		Another:   another,
 	}
 	db.Users[email] = user
 

@@ -97,14 +97,13 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 func (ac apiConfig) endpointUsersHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		fmt.Println("boo")
+		ac.handlerGetUser(w, r)
 	case http.MethodPost:
 		ac.handlerCreateUser(w, r)
-
 	case http.MethodPut:
-
+		ac.handlerUpdateUser(w, r)
 	case http.MethodDelete:
-
+		ac.handlerDeleteUser(w, r)
 	default:
 		respondWithError(w, 404, errors.New("method not supported"))
 	}

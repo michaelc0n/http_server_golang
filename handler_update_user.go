@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
-func (ac apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
+func (ac apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) {
+	userEmail := strings.TrimPrefix(r.URL.Path, "/users/")
 	type parameters struct {
-		Email    string `json:"email"`
 		Password string `json:"password"`
 		Name     string `json:"name"`
 		Age      int    `json:"age"`
@@ -21,10 +22,10 @@ func (ac apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newUser, err := ac.dbClient.CreateUser(params.Email, params.Password, params.Name, params.Age, params.Another)
+	newUser, err := ac.dbClient.UpdateUser(userEmail, params.Password, params.Name, params.Age)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err)
 		return
 	}
-	respondWithJSON(w, http.StatusCreated, newUser)
+	respondWithJSON(w, http.StatusOK, newUser)
 }
