@@ -33,6 +33,8 @@ func main() {
 
 	serveMux.HandleFunc("/users", apiCfg.endpointUsersHandler)
 	serveMux.HandleFunc("/users/", apiCfg.endpointUsersHandler)
+	serveMux.HandleFunc("/posts", apiCfg.endpointPostsHandler)
+	serveMux.HandleFunc("/posts/", apiCfg.endpointPostsHandler)
 
 	serveMux.HandleFunc("/", testHandler)
 	serveMux.HandleFunc("/err", testErrHandler)
@@ -104,6 +106,19 @@ func (ac apiConfig) endpointUsersHandler(w http.ResponseWriter, r *http.Request)
 		ac.handlerUpdateUser(w, r)
 	case http.MethodDelete:
 		ac.handlerDeleteUser(w, r)
+	default:
+		respondWithError(w, 404, errors.New("method not supported"))
+	}
+}
+
+func (ac apiConfig) endpointPostsHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		ac.handlerGetPosts(w, r)
+	case http.MethodPost:
+		ac.handlerCreatePost(w, r)
+	case http.MethodDelete:
+		ac.handlerDeletePost(w, r)
 	default:
 		respondWithError(w, 404, errors.New("method not supported"))
 	}
