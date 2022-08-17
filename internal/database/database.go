@@ -3,7 +3,6 @@ package database
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"time"
 )
@@ -13,17 +12,7 @@ type databaseSchema struct {
 	Posts map[string]Post `json:"posts"`
 }
 
-// User -
-type User struct {
-	CreatedAt time.Time `json:"createdAt"`
-	Email     string    `json:"email"`
-	Password  string    `json:"password"`
-	Name      string    `json:"name"`
-	Age       int       `json:"age"`
-	Another   string    `json:"another"`
-}
-
-// Post -
+// Post
 type Post struct {
 	ID        string    `json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -85,79 +74,5 @@ func (c Client) createDB() error {
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func (c Client) CreateUser(email, password, name string, age int, another string) (User, error) {
-	db, err := c.readDB()
-	if err != nil {
-		return User{}, err
-	}
-	if _, ok := db.Users[email]; ok {
-		fmt.Printf("creating user: %v", ok)
-		return User{}, errors.New("user already exists")
-	}
-	user := User{
-		CreatedAt: time.Now().UTC(),
-		Email:     email,
-		Password:  password,
-		Name:      name,
-		Age:       age,
-		Another:   another,
-	}
-	db.Users[email] = user
-
-	err = c.updateDB(db)
-	if err != nil {
-		return User{}, err
-	}
-	fmt.Printf("creating user: %v %v", user, err)
-	return user, err
-}
-
-func (c Client) UpdateUser(email, password, name string, age int) (User, error) {
-	db, err := c.readDB()
-	if err != nil {
-		return User{}, err
-	}
-	user, ok := db.Users[email]
-
-	if !ok {
-		return User{}, errors.New("user doesn't exist")
-	}
-
-	user.Password = password
-	user.Name = name
-	user.Age = age
-	db.Users[email] = user
-	err = c.updateDB(db)
-	if err != nil {
-		return User{}, err
-	}
-	fmt.Printf("updating user: %v %v", user, err)
-	return user, err
-}
-
-func (c Client) GetUser(email string) (User, error) {
-	db, err := c.readDB()
-	user, ok := db.Users[email]
-	if !ok {
-		return User{}, errors.New("user doesn't exist")
-	}
-	fmt.Printf("getting user: %v %v", user, err)
-	return user, err
-}
-
-func (c Client) DeleteUser(email string) error {
-	db, err := c.readDB()
-	if err != nil {
-		return err
-	}
-	delete(db.Users, email)
-	err = c.updateDB(db)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
