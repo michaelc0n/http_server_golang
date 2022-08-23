@@ -36,9 +36,6 @@ func main() {
 	serveMux.HandleFunc("/posts", apiCfg.endpointPostsHandler)
 	serveMux.HandleFunc("/posts/", apiCfg.endpointPostsHandler)
 
-	serveMux.HandleFunc("/", testHandler)
-	serveMux.HandleFunc("/err", testErrHandler)
-
 	const addr = "localhost:8080"
 	srv := http.Server{
 		Handler:      serveMux,
@@ -50,19 +47,36 @@ func main() {
 	log.Fatal(srv.ListenAndServe())
 }
 
+func (ac apiConfig) endpointUsersHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		ac.handlerGetUser(w, r)
+	case http.MethodPost:
+		ac.handlerCreateUser(w, r)
+	case http.MethodPut:
+		ac.handlerUpdateUser(w, r)
+	case http.MethodDelete:
+		ac.handlerDeleteUser(w, r)
+	default:
+		respondWithError(w, 404, errors.New("method not supported"))
+	}
+}
+
+func (ac apiConfig) endpointPostsHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		ac.handlerGetPosts(w, r)
+	case http.MethodPost:
+		ac.handlerCreatePost(w, r)
+	case http.MethodDelete:
+		ac.handlerDeletePost(w, r)
+	default:
+		respondWithError(w, 404, errors.New("method not supported"))
+	}
+}
+
 type errorBody struct {
 	Error string `json:"Error"`
-}
-
-func testHandler(w http.ResponseWriter, r *http.Request) {
-	respondWithJSON(w, 200, database.User{
-		Email: "test@example.com",
-		Name:  "mr",
-	})
-}
-
-func testErrHandler(w http.ResponseWriter, r *http.Request) {
-	respondWithError(w, 500, errors.New("serve error"))
 }
 
 func respondWithError(w http.ResponseWriter, code int, err error) {
@@ -93,33 +107,5 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 		}
 		w.WriteHeader(code)
 		w.Write(response)
-	}
-}
-
-func (ac apiConfig) endpointUsersHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		ac.handlerGetUser(w, r)
-	case http.MethodPost:
-		ac.handlerCreateUser(w, r)
-	case http.MethodPut:
-		ac.handlerUpdateUser(w, r)
-	case http.MethodDelete:
-		ac.handlerDeleteUser(w, r)
-	default:
-		respondWithError(w, 404, errors.New("method not supported"))
-	}
-}
-
-func (ac apiConfig) endpointPostsHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		ac.handlerGetPosts(w, r)
-	case http.MethodPost:
-		ac.handlerCreatePost(w, r)
-	case http.MethodDelete:
-		ac.handlerDeletePost(w, r)
-	default:
-		respondWithError(w, 404, errors.New("method not supported"))
 	}
 }
