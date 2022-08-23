@@ -12,7 +12,6 @@ type databaseSchema struct {
 	Posts map[string]Post `json:"posts"`
 }
 
-// Post
 type Post struct {
 	ID        string    `json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
